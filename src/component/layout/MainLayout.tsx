@@ -6,9 +6,18 @@ import {
 import { Layout, Menu, Drawer, Button } from "antd";
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import { adminSlidebarItems } from "../../routes/Admin.route";
+import { sidebarItemsGenerator } from "../../utils/sidebarItemsGenerator";
+import { adminPaths } from "../../routes/Admin.route";
+import { facultyPaths } from "../../routes/Faculty.route";
+import { studentPaths } from "../../routes/Studnet.route";
 
 const { Header, Sider, Content } = Layout;
+
+const userRole = {
+  ADMIN: "admin",
+  FACULTY: "faculty",
+  STUDENT: "student",
+};
 
 const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -24,8 +33,6 @@ const MainLayout = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // ✅ Sidebar Menu Items (icon removed)
 
   // const items: MenuProps["items"] = [
   //   {
@@ -65,6 +72,23 @@ const MainLayout = () => {
   //     ],
   //   },
   // ];
+  const role = "student";
+  let sidebarItems;
+
+  switch (role) {
+    case userRole.ADMIN:
+      sidebarItems = sidebarItemsGenerator(adminPaths, userRole.ADMIN);
+      break;
+    case userRole.FACULTY:
+      sidebarItems = sidebarItemsGenerator(facultyPaths, userRole.FACULTY);
+      break;
+    case userRole.STUDENT:
+      sidebarItems = sidebarItemsGenerator(studentPaths, userRole.STUDENT);
+      break;
+
+    default:
+      break;
+  }
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -97,7 +121,7 @@ const MainLayout = () => {
             theme="dark"
             mode="inline"
             defaultSelectedKeys={["1"]}
-            items={adminSlidebarItems}
+            items={sidebarItems}
           />
         </Sider>
       )}
@@ -141,7 +165,7 @@ const MainLayout = () => {
             theme="dark"
             mode="inline"
             defaultSelectedKeys={["1"]}
-            items={adminSlidebarItems}
+            items={sidebarItems}
           />
         </Drawer>
       )}
