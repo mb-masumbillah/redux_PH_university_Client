@@ -2,14 +2,18 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   CloseOutlined,
+  LogoutOutlined,
+  LoginOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Drawer, Button } from "antd";
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { sidebarItemsGenerator } from "../../utils/sidebarItemsGenerator";
 import { adminPaths } from "../../routes/Admin.route";
 import { facultyPaths } from "../../routes/Faculty.route";
 import { studentPaths } from "../../routes/Studnet.route";
+import { useAppDispatch, useAppSelector } from "../../redux/hook";
+import { logOut, selectUser } from "../../redux/features/auth/authSlice";
 
 const { Header, Sider, Content } = Layout;
 
@@ -23,6 +27,8 @@ const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   // ✅ Window Resize Handle (Responsive)
   useEffect(() => {
@@ -34,48 +40,22 @@ const MainLayout = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // const items: MenuProps["items"] = [
-  //   {
-  //     key: "Dashboard",
-  //     label: <NavLink to="/admin/dashboard">Dashboard</NavLink>,
-  //   },
-  //   {
-  //     key: "User Management",
-  //     label: "User Management",
-  //     children: [
-  //       {
-  //         key: "Create Admin",
-  //         label: <NavLink to="/admin/create-admin">Create Admin</NavLink>,
-  //       },
-  //       {
-  //         key: "Create Faculty",
-  //         label: <NavLink to="/admin/create-faculty">Create Faculty</NavLink>,
-  //       },
-  //       {
-  //         key: "Create Student",
-  //         label: <NavLink to="/admin/create-student">Create Student</NavLink>,
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     key: "3",
-  //     label: "Settings",
-  //     children: [
-  //       {
-  //         key: "3-1",
-  //         label: "Account",
-  //       },
-  //       {
-  //         key: "3-2",
-  //         label: "Security",
-  //       },
-  //     ],
-  //   },
-  // ];
-  const role = "student";
-  let sidebarItems;
+  // ✅ Logout Function
+  const handleLogout = () => {
+    dispatch(logOut());
+    navigate("/login"); // ✅ Login Page এ Redirect হবে
+  };
 
-  switch (role) {
+  // ✅ Login Function
+  const handleLogin = () => {
+    navigate("/login"); // ✅ Dashboard Page এ Redirect হবে
+  };
+
+  const user = useAppSelector(selectUser);
+
+  let sidebarItems; 
+
+  switch (user!.role) {
     case userRole.ADMIN:
       sidebarItems = sidebarItemsGenerator(adminPaths, userRole.ADMIN);
       break;
@@ -179,31 +159,56 @@ const MainLayout = () => {
             padding: "0 16px",
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             color: "#fff",
           }}
         >
-          {isMobile ? (
+          {/* Sidebar Toggle Button */}
+          <div>
+            {isMobile ? (
+              <Button
+                type="text"
+                icon={
+                  <MenuUnfoldOutlined
+                    style={{ fontSize: "18px", color: "#fff" }}
+                  />
+                }
+                onClick={() => setMobileOpen(true)}
+              />
+            ) : collapsed ? (
+              <MenuUnfoldOutlined
+                style={{ fontSize: "18px", cursor: "pointer", color: "#fff" }}
+                onClick={() => setCollapsed(!collapsed)}
+              />
+            ) : (
+              <MenuFoldOutlined
+                style={{ fontSize: "18px", cursor: "pointer", color: "#fff" }}
+                onClick={() => setCollapsed(!collapsed)}
+              />
+            )}
+          </div>
+
+          {/* ✅ Login & Logout Button */}
+          <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
             <Button
-              type="text"
-              icon={
-                <MenuUnfoldOutlined
-                  style={{ fontSize: "18px", color: "#fff" }}
-                />
-              }
-              onClick={() => setMobileOpen(true)}
-            />
-          ) : collapsed ? (
-            <MenuUnfoldOutlined
-              style={{ fontSize: "18px", cursor: "pointer", color: "#fff" }}
-              onClick={() => setCollapsed(!collapsed)}
-            />
-          ) : (
-            <MenuFoldOutlined
-              style={{ fontSize: "18px", cursor: "pointer", color: "#fff" }}
-              onClick={() => setCollapsed(!collapsed)}
-            />
-          )}
+              type="primary"
+              icon={<LogoutOutlined />}
+              danger
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+
+            <Button
+              type="primary"
+              icon={<LoginOutlined />}
+              onClick={handleLogin}
+            >
+              Login
+            </Button>
+          </div>
         </Header>
+
         <Content
           style={{
             margin: "24px 16px",
